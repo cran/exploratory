@@ -1,0 +1,48 @@
+Package: exploratory
+Title: Conduct Exploratory Analyses with a Point-and-Click Interface
+Version: 0.1.53
+Authors@R: 
+    person(given = "Jin",
+           family = "Kim",
+           role = c("aut", "cre"),
+           email = "jin.m.kim@yale.edu",
+           comment = c(ORCID = "https://orcid.org/0000-0002-5013-3958",
+           website = "https://jinkim.science"))
+Description: Conduct numerous exploratory analyses in an instant with a 
+    point-and-click interface. With one simple command, this tool 
+    launches a Shiny App on the local machine. Drag and drop variables 
+    in a data set to categorize them as possible independent, 
+    dependent, moderating, or mediating variables. Then run dozens 
+    (or hundreds) of analyses instantly to uncover any statistically 
+    significant relationships among variables. Any relationship 
+    thus uncovered should be tested in follow-up studies. 
+    This tool is designed only to facilitate exploratory 
+    analyses and should NEVER be used for p-hacking. Many of 
+    the functions used in this package are direct copies of functions
+    in the R Package 'kim' and 'ezr'.
+    Selected References:
+    Chang et al. (2021) <https://CRAN.R-project.org/package=shiny>.
+    Chang et al. (2018) <https://CRAN.R-project.org/package=shinydashboard>.
+    Cohen (1988) <doi:10.4324/9780203771587>.
+    Dowle et al. (2021) <https://CRAN.R-project.org/package=data.table>.
+    Ioannidis (2005) <doi:10.1371/journal.pmed.0020124>
+    Kim (2021) <doi:10.5281/zenodo.4619237>.
+    Kim (2020) <https://CRAN.R-project.org/package=ezr>.
+    Simmons et al. (2011) <doi:10.1177/0956797611417632>
+    Tingley et al. (2019) <https://CRAN.R-project.org/package=mediation>.
+    Wickham et al. (2020) <https://CRAN.R-project.org/package=ggplot2>.
+License: GPL-3
+URL: https://github.com/jinkim3/exploratory
+BugReports: https://github.com/jinkim3/exploratory/issues
+Imports: data.table, devtools, DT, ggplot2, ggridges, lemon, lm.beta,
+        mediation, moments, shiny, shinydashboard, weights
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+NeedsCompilation: no
+Packaged: 2021-03-18 23:18:30 UTC; c
+Author: Jin Kim [aut, cre] (<https://orcid.org/0000-0002-5013-3958>,
+    https://jinkim.science)
+Maintainer: Jin Kim <jin.m.kim@yale.edu>
+Repository: CRAN
+Date/Publication: 2021-03-22 08:50:02 UTC

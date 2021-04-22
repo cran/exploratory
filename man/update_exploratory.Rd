@@ -4,24 +4,26 @@
 \alias{update_exploratory}
 \title{Update the package 'exploratory'}
 \usage{
-update_exploratory(force = FALSE, upgrade = FALSE)
+update_exploratory(force = TRUE, upgrade_other_pkg = FALSE, confirm = TRUE)
 }
 \arguments{
-\item{force}{logical. If \code{force = TRUE}, forces the installation
-even if the package 'exploratory' from the source has not changed since
-last install.}
+\item{force}{logical. If \code{force = TRUE}, force installing the
+update. If \code{force = FALSE}, do not force installing the update.
+By default, \code{force = TRUE}.}
 
-\item{upgrade}{input for \code{upgrade} argument to be passed on to
-\code{remotes::install_github}.
-The default value is \code{FALSE}.
-An input could be \code{TRUE} or \code{FALSE}, but it could also
-be one of the following: "default", "ask", "always", or "never".
-"default" respects the value of the R_REMOTES_UPGRADE
-environment variable if set, and falls back to "ask" if unset.
+\item{upgrade_other_pkg}{input for the \code{upgrade} argument to
+be passed on to \code{remotes::install_github}.
+One of "default", "ask", "always", "never", TRUE, or FALSE.
+"default" respects the value of the R_REMOTES_UPGRADE environment
+variable if set, and falls back to "ask" if unset.
 "ask" prompts the user for which out of date packages to upgrade.
 For non-interactive sessions "ask" is equivalent to "always".
-TRUE and FALSE are also accepted and correspond
-to "always" and "never" respectively.}
+TRUE and FALSE correspond to "always" and "never" respectively.
+By default, \code{upgrade_other_pkg = FALSE}.}
+
+\item{confirm}{logical. If \code{confirm = TRUE}, the user will
+need to confirm the update. If \code{confirm = FALSE}, the confirmation
+step will be skipped. By default, \code{confirm = TRUE}.}
 }
 \value{
 there will be no output from this function. Rather, executing
@@ -34,7 +36,7 @@ most recent version of the package from GitHub
 }
 \examples{
 \dontrun{
-update_exploratory()
+if (interactive()) {update_exploratory()}
 }
 
 }

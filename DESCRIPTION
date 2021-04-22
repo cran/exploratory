@@ -1,13 +1,12 @@
 Package: exploratory
-Title: Conduct Exploratory Analyses with a Point-and-Click Interface
-Version: 0.1.53
+Title: A Tool for Large-Scale Exploratory Analyses
+Version: 0.3.13
 Authors@R: 
     person(given = "Jin",
            family = "Kim",
            role = c("aut", "cre"),
            email = "jin.m.kim@yale.edu",
-           comment = c(ORCID = "https://orcid.org/0000-0002-5013-3958",
-           website = "https://jinkim.science"))
+           comment = c(ORCID = "https://orcid.org/0000-0002-5013-3958"))
 Description: Conduct numerous exploratory analyses in an instant with a 
     point-and-click interface. With one simple command, this tool 
     launches a Shiny App on the local machine. Drag and drop variables 
@@ -32,17 +31,16 @@ Description: Conduct numerous exploratory analyses in an instant with a
     Tingley et al. (2019) <https://CRAN.R-project.org/package=mediation>.
     Wickham et al. (2020) <https://CRAN.R-project.org/package=ggplot2>.
 License: GPL-3
-URL: https://github.com/jinkim3/exploratory
+URL: https://exploratoryonly.com
 BugReports: https://github.com/jinkim3/exploratory/issues
-Imports: data.table, devtools, DT, ggplot2, ggridges, lemon, lm.beta,
-        mediation, moments, shiny, shinydashboard, weights
+Imports: data.table, DT, ggplot2, ggridges, lemon, lm.beta, mediation,
+        remotes, shiny, shinydashboard, weights
+Suggests: moments
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2021-03-18 23:18:30 UTC; c
-Author: Jin Kim [aut, cre] (<https://orcid.org/0000-0002-5013-3958>,
-    https://jinkim.science)
+Packaged: 2021-04-21 09:43:27 UTC; c
+Author: Jin Kim [aut, cre] (<https://orcid.org/0000-0002-5013-3958>)
 Maintainer: Jin Kim <jin.m.kim@yale.edu>
 Repository: CRAN
-Date/Publication: 2021-03-22 08:50:02 UTC
+Date/Publication: 2021-04-22 07:10:02 UTC

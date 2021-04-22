@@ -1,4 +1,4 @@
-# update the package when it is loaded
+# display the current version
 .onAttach <- function(libname, pkgname) {
   # deal with 5 possible cases
   # 1. error in getting the current package version -> update
@@ -40,7 +40,8 @@
       compare_version_result == 0) {
     startup_message <- paste0(
       "Package attached: exploratory v", current_pkg_version,
-      " (same as the most recent version available through GitHub).")
+      " (same as the most recent version available through GitHub).",
+      "\n\nIf you run into errors, please try restarting R.\n")
   } else if (
     # skip update for case 4
     current_pkg_version != "unknown" &
@@ -48,11 +49,19 @@
     compare_version_result > 0) {
     startup_message <- paste0(
       "Package attached: exploratory v", current_pkg_version,
-      " (more recent than the most recent version ",
-      "available through GitHub).")
+      " (probably same as the most recent version ",
+      "available through GitHub).",
+      "\n\nIf you run into errors, please try restarting R.\n")
   } else {
+    # simply notify of the OPTION to update the package
+    # this is simply a notification of the option to update,
+    # rather than a recommendation to update
     startup_message <- paste0(
-      "\nPackage updated: exploratory v", current_pkg_version)
+      "Package attached: exploratory v", current_pkg_version,
+      ". Most recent version available on GitHub: v", github_pkg_version,
+      "\nYou have an OPTION to update the package ",
+      "by typing 'update_exploratory()'.",
+      " If you do so, make sure to restart R.")
   }
   packageStartupMessage(startup_message)
 }

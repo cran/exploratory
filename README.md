@@ -4,11 +4,14 @@
 # ‘exploratory’: an R Package
 
 <!-- badges: start -->
+<!--[![CRAN checks](https://cranchecks.info/badges/summary/exploratory)](https://cran.r-project.org/web/checks/check_results_exploratory.html)-->
 
 [![R build
 status](https://github.com/jinkim3/exploratory/workflows/R-CMD-check/badge.svg)](https://github.com/jinkim3/exploratory/actions)
 [![](https://img.shields.io/github/last-commit/jinkim3/exploratory.svg)](https://github.com/jinkim3/exploratory/commits/master)
 [![CodeFactor](https://www.codefactor.io/repository/github/jinkim3/exploratory/badge)](https://www.codefactor.io/repository/github/jinkim3/exploratory)
+[![Total
+Downloads](http://cranlogs.r-pkg.org/badges/grand-total/exploratory?color=blue)](https://cran.r-project.org/package=exploratory)
 <!-- badges: end -->
 
 ### Exploratory Analysis Tool for Behavioral Science Researchers
@@ -28,7 +31,7 @@ correlation and regression) with the point-and-click interface.
 Any relationship among variables uncovered using this tool should be
 tested in follow-up studies. This tool is designed only to facilitate
 exploratory analyses and should NEVER be used for p-hacking (Simmons,
-Nelson, & Simonsohn, 2011; Ioannidis 2005).
+Nelson, and Simonsohn, 2011; Ioannidis 2005).
 
 ## Installation
 
@@ -43,8 +46,8 @@ You can also install the development version from [exploratory on
 GitHub](https://github.com/jinkim3/exploratory) with:
 
 ``` r
-install.packages("devtools")
-devtools::install_github("jinkim3/exploratory")
+install.packages("remotes")
+remotes::install_github("jinkim3/exploratory")
 ```
 
 If you run into errors while using the package, try updating the package

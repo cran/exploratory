@@ -20,16 +20,17 @@
 #' @export
 #' @import data.table ggplot2 shiny shinydashboard
 exploratory <- function(
-  data = NULL,
+  data = datasets::mtcars,
   sigfig = 3,
   select_list_max = 100000,
   saved_analyses_file_name = "exploratory_analyses_saved.csv",
   run_analysis_file_name = "exploratory_analyses_run.csv"
 ) {
   # create sidebar menu labels
-  analysis_type_label <-
-    c("Exploratory Analyses",
-      "Saved Analysis",
+  action_type_label <-
+    c("Upload Data",
+      "Exploratory Analyses",
+      "Saved Analyses",
       "Descriptive Stats",
       "Frequency Table",
       "Histogram",
@@ -39,8 +40,9 @@ exploratory <- function(
       "View Data")
   # set analysis type name that will be used throughout
   # the current function
-  analysis_type <-
-    c("exploratory_analysis",
+  action_type <-
+    c("upload_data",
+      "exploratory_analysis",
       "saved_analysis",
       "desc_stats",
       "freq_table",
@@ -50,8 +52,9 @@ exploratory <- function(
       "regression",
       "view_data")
   # icons for analyses
-  analysis_icon <-
-    c("search", # exploratory analyses
+  action_icon <-
+    c("file-upload", # upload data
+      "search", # exploratory analyses
       "bookmark", # saved analysis
       "list", # desc stats
       "sort-amount-down", # freq table
@@ -63,7 +66,7 @@ exploratory <- function(
     )
   # dt for sidebar menu
   sidebar_menu_dt <- data.table(
-    analysis_type, analysis_type_label, analysis_icon)
+    action_type, action_type_label, action_icon)
 
   # set defaults
   number_of_dynamic_ui <- 10
@@ -122,6 +125,16 @@ exploratory <- function(
   var_names <- c("", names(data))
 
   # functions to be put inside shiny
+  file_upload_input <- function() {
+    fileInput(
+      inputId = "uploaded_file",
+      label = "Choose a data CSV File",
+      multiple = FALSE,
+      accept = c(
+        "text/csv",
+        "text/comma-separated-values,text/plain",
+        ".csv"))
+  }
   one_var_input <- function() {
     selectizeInput(
       inputId = "var",
@@ -314,7 +327,8 @@ exploratory <- function(
   filter_var_ids <-
     paste0("filter_var_", seq_len(number_of_max_filter_vars))
   names_of_all_inputs_for_analysis <- c(
-    "sidebar_menu", "var", "iv", "dv", "mod", "medi", "iv_order",
+    "sidebar_menu", "var", "iv", "dv",
+    "mod", "medi", "iv_order",
     "include_totals", "function_name", "row_vars", "col_vars",
     "cell_var", "sigfig", "saved_analysis_choices",
     "vars_for_outliers", "sigfig", "names_of_filter_vars",
@@ -351,6 +365,10 @@ exploratory <- function(
          renderUI({filter_vars_input_1()}))
   analysis_input_1 <- function(
     active_tab, saved_analysis_reactive_dt) {
+    if (active_tab == "upload_data") {
+      uis <- list(
+        renderUI({file_upload_input()}))
+    }
     if (active_tab == "exploratory_analysis") {
       uis <- list(
         renderUI({iv_input(multiple = TRUE)}),
@@ -420,10 +438,11 @@ exploratory <- function(
                      renderUI({textOutput("outlier_report_1")}),
                      renderUI({DT::DTOutput("outlier_report_table")}))
     if (active_tab %in% c(
-      "exploratory_analysis",
+      "upload_data", "exploratory_analysis",
       "desc_stats", "freq_table", "regression",
       "iv_dv_table", "pivot_table", "view_data")) {
-      sections <- c(sections, list(renderUI({DT::DTOutput("table_1")})))
+      sections <- c(sections, list(
+        renderUI({DT::DTOutput("table_1")})))
     }
     if (active_tab %in% c("histogram", "scatterplot")) {
       sections <- c(sections, list(renderUI({plotOutput("plot_1")})))
@@ -518,9 +537,9 @@ exploratory <- function(
         id = "sidebar_menu",
         lapply(seq_len(nrow(sidebar_menu_dt)), function(i) {
           shinydashboard::menuItem(
-            sidebar_menu_dt$analysis_type_label[i],
-            tabName = sidebar_menu_dt$analysis_type[i],
-            icon = icon(sidebar_menu_dt$analysis_icon[i]),
+            sidebar_menu_dt$action_type_label[i],
+            tabName = sidebar_menu_dt$action_type[i],
+            icon = icon(sidebar_menu_dt$action_icon[i]),
             selected = TRUE)}))
     })
     # reactive values
@@ -532,6 +551,8 @@ exploratory <- function(
     reactive_dt$run_analysis <- fread(
       run_analysis_file_name)
     reactive_dt$loaded_inputs <- NULL
+    # make data reactive for file upload
+    reactive_dt$data <- data
     # static input uis
     lapply(seq_along(static_input_uis), function(i) {
       output[[paste0("static_input_", i)]] <- static_input_uis[[i]]
@@ -562,6 +583,28 @@ exploratory <- function(
         output[[paste0("dynamic_output_section_", i)]] <-
           output_sections[[i]]
       })
+      # inputs to update
+      inputs_to_update_after_upload <- c(
+        "var", "iv", "interaction_2_way_1",
+        "interaction_2_way_2", "interaction_3_way",
+        "dv", "mod", "medi", "row_vars",
+        "col_vars", "cell_var", "vars_for_outliers",
+        "names_of_filter_vars"
+      )
+      # update var names in input uis
+      req(reactive_values$var_names_for_inputs)
+      lapply(inputs_to_update_after_upload, function(x) {
+        updateSelectizeInput(
+          session, inputId = x,
+          choices = reactive_values$var_names_for_inputs)
+      })
+    })
+    # observer for data file upload
+    observe({
+      req(input$uploaded_file)
+      reactive_dt$data <- fread(input$uploaded_file$datapath)
+      reactive_values$var_names_for_inputs <- c(
+        "", names(reactive_dt$data))
     })
     # observer for iv order
     observe({
@@ -630,7 +673,8 @@ exploratory <- function(
       sidebar_menu_item_to_switch_to <-
         dt01[get("input_type") == "sidebar_menu"][["input_value"]]
       shinydashboard::updateTabItems(
-        session, inputId = "sidebar_menu",
+        session,
+        inputId = "sidebar_menu",
         selected = sidebar_menu_item_to_switch_to)
       # reactive dt for loaded inputs
       reactive_dt$loaded_inputs <- dt01
@@ -701,7 +745,7 @@ exploratory <- function(
       # get active tab
       active_tab <- input$sidebar_menu
       # get data
-      dt01 <- data
+      dt01 <- reactive_dt$data
       # remove outliers
       if (!is.null(input$vars_for_outliers)) {
         for (i in seq_along(input$vars_for_outliers)) {
@@ -728,6 +772,9 @@ exploratory <- function(
         # dt01 <- mtcars
         # input <- list(3)
         # names(input) <- "sigfig"
+        # input$iv <- "cyl"
+        # input$dv <- "mpg"
+        # input$medi <- "drat"
         # get vars by type
         e_iv <- input$iv
         e_dv <- input$dv
@@ -745,6 +792,18 @@ exploratory <- function(
             iv = rep(e_iv, each = num_e_dv),
             dv = rep(e_dv, times = num_e_iv)
           )
+          # count number of distinct vars in the model
+          e_corr_dt[["num_of_distinct_vars_in_model"]] <- apply(
+            e_corr_dt, 1, function(x) length(unique(x)))
+          # maximum number of distinct vars in all models
+          corr_model_distin_vars_max <- max(e_corr_dt[[
+            "num_of_distinct_vars_in_model"]], na.rm = TRUE)
+          # valid models only (models with 2 distinct vars)
+          e_corr_dt <- e_corr_dt[
+            e_corr_dt[["num_of_distinct_vars_in_model"]] ==
+              corr_model_distin_vars_max]
+          # delete the column indicating number of distinct vars in the model
+          e_corr_dt[["num_of_distinct_vars_in_model"]] <- NULL
           # report progress
           withProgress(
             message = "Conducting correlation analyses: ", value = 0, {
@@ -783,7 +842,7 @@ exploratory <- function(
                 }
                 output <- data.table(
                   r = e_corr_r,
-                  p = e_corr_p,
+                  corr_p = e_corr_p,
                   note = e_corr_note)
                 return(output)
               })
@@ -797,13 +856,16 @@ exploratory <- function(
           # add var names
           e_corr_dt <- data.table(e_corr_dt, e_corr_r_p_dt)
           # add the analysis type column at the beginning
-          e_corr_dt[, analysis_type := "correlation"]
-          setcolorder(e_corr_dt, "analysis_type")
+          e_corr_dt[["analysis"]] <- "correlation"
+          setcolorder(e_corr_dt, "analysis")
           # round
-          for (j in c("r", "p")) {
+          for (j in c("r", "corr_p")) {
             set(e_corr_dt, j = j,
                 value = signif(e_corr_dt[[j]], input$sigfig))
           }
+          # add the p value of interest column
+          e_corr_dt[["p_value_of_interest"]] <-
+            e_corr_dt[["corr_p"]]
         } else {
           e_corr_dt <- NULL
         }
@@ -815,6 +877,18 @@ exploratory <- function(
             iv = rep(e_iv, each = num_e_dv * num_e_mod),
             mod = rep(rep(e_mod, each = num_e_dv), times = num_e_iv),
             dv = rep(e_dv, times = num_e_iv * num_e_mod))
+          # count number of distinct vars in the model
+          e_mod_dt[["num_of_distinct_vars_in_model"]] <- apply(
+            e_mod_dt, 1, function(x) length(unique(x)))
+          # maximum number of distinct vars in all models
+          mod_model_distin_vars_max <- max(e_mod_dt[[
+            "num_of_distinct_vars_in_model"]], na.rm = TRUE)
+          # valid models only (models with 3 distinct vars)
+          e_mod_dt <- e_mod_dt[
+            e_mod_dt[["num_of_distinct_vars_in_model"]] ==
+              mod_model_distin_vars_max]
+          # delete the column indicating number of distinct vars in the model
+          e_mod_dt[["num_of_distinct_vars_in_model"]] <- NULL
           # report progress
           withProgress(
             message = "Conducting moderation analyses: ", value = 0, {
@@ -838,8 +912,8 @@ exploratory <- function(
                   e_mod_int_p <- tryCatch(
                     summary(stats::lm(
                       formula = formula_2, data = dt01))[[
-                      "coefficients"]][paste0(
-                        e_mod_iv_name, ":", e_mod_mod_name), "Pr(>|t|)"],
+                        "coefficients"]][paste0(
+                          e_mod_iv_name, ":", e_mod_mod_name), "Pr(>|t|)"],
                     error = function(e) "error",
                     warning = function(w) "warning")
                   # handle errors or warnings
@@ -867,11 +941,14 @@ exploratory <- function(
           # add var names
           e_mod_dt <- data.table(e_mod_dt, e_mod_int_p_dt)
           # add the analysis type column at the beginning
-          e_mod_dt[, analysis_type := "moderation"]
-          setcolorder(e_mod_dt, "analysis_type")[]
+          e_mod_dt[["analysis"]] <- "moderation"
+          setcolorder(e_mod_dt, "analysis")[]
           # round
           e_mod_dt[["interaction_p_value"]] <- signif(
             e_mod_dt[["interaction_p_value"]], input$sigfig)
+          # add the p value of interest column
+          e_mod_dt[["p_value_of_interest"]] <-
+            e_mod_dt[["interaction_p_value"]]
         } else {
           e_mod_dt <- NULL
         }
@@ -883,6 +960,18 @@ exploratory <- function(
             iv = rep(e_iv, each = num_e_dv * num_e_medi),
             medi = rep(rep(e_medi, each = num_e_dv), times = num_e_iv),
             dv = rep(e_dv, times = num_e_iv * num_e_medi))
+          # count number of distinct vars in the model
+          e_medi_dt[["num_of_distinct_vars_in_model"]] <- apply(
+            e_medi_dt, 1, function(x) length(unique(x)))
+          # maximum number of distinct vars in all models
+          medi_model_distin_vars_max <- max(e_medi_dt[[
+            "num_of_distinct_vars_in_model"]], na.rm = TRUE)
+          # valid models only (models with 3 distinct vars)
+          e_medi_dt <- e_medi_dt[
+            e_medi_dt[["num_of_distinct_vars_in_model"]] ==
+              medi_model_distin_vars_max]
+          # delete the column indicating number of distinct vars in the model
+          e_medi_dt[["num_of_distinct_vars_in_model"]] <- NULL
           # report progress
           withProgress(
             message = "Conducting mediation analyses: ", value = 0, {
@@ -934,11 +1023,14 @@ exploratory <- function(
           # add var names
           e_medi_dt <- data.table(e_medi_dt, e_medi_indir_eff_p_dt)
           # add the analysis type column at the beginning
-          e_medi_dt[, analysis_type := "mediation"]
-          setcolorder(e_medi_dt, "analysis_type")[]
+          e_medi_dt[["analysis"]] <- "mediation"
+          setcolorder(e_medi_dt, "analysis")[]
           # round
           e_medi_dt[["indirect_effect_p_value"]] <- signif(
             e_medi_dt[["indirect_effect_p_value"]], input$sigfig)
+          # add the p value of interest column
+          e_medi_dt[["p_value_of_interest"]] <-
+            e_medi_dt[["indirect_effect_p_value"]]
         } else {
           e_medi_dt <- NULL
         }
@@ -955,24 +1047,22 @@ exploratory <- function(
           # merge the data tables above
           e_result_merged <- merge_data_table_list(
             dt_list = e_result_dt_list, id = "id")
-          # remove the id column
-          e_result_merged[, id := NULL]
           # var types for correlation
-          if ("correlation" %in% e_result_merged[, analysis_type]) {
+          if ("correlation" %in% e_result_merged[["analysis"]]) {
             e_corr_vars <- c("iv", "dv")
-            e_corr_other_cols <- c("r", "p")
+            e_corr_other_cols <- c("r", "corr_p")
           } else {
             e_corr_vars <- e_corr_other_cols <- NULL
           }
           # var types for moderation
-          if ("moderation" %in% e_result_merged[, analysis_type]) {
+          if ("moderation" %in% e_result_merged[["analysis"]]) {
             e_mod_vars <- c("iv", "mod", "dv")
             e_mod_other_cols <- "interaction_p_value"
           } else {
             e_mod_vars <- e_mod_other_cols <- NULL
           }
           # var types for mediation
-          if ("mediation" %in% e_result_merged[, analysis_type]) {
+          if ("mediation" %in% e_result_merged[["analysis"]]) {
             e_medi_vars <- c("iv", "medi", "dv")
             e_medi_other_cols <- "indirect_effect_p_value"
           } else {
@@ -986,24 +1076,30 @@ exploratory <- function(
           e_other_cols <- list(
             e_corr_other_cols, e_mod_other_cols, e_medi_other_cols)
           e_other_cols_ordered <- Reduce(f = union, x = e_other_cols)
+          # insert the key p value column
+          e_other_cols_ordered <- c(
+            "p_value_of_interest", e_other_cols_ordered)
           # new column order
           e_result_merged_new_col_order <- Reduce(f = c, x = list(
-            "analysis_type", e_var_types_ordered, e_other_cols_ordered))
+            "id", "analysis", e_var_types_ordered, e_other_cols_ordered))
           # reorder columns
           setcolorder(
             e_result_merged,
             neworder = e_result_merged_new_col_order)
           # rename columns
           setnames(e_result_merged, old = c(
-            "analysis_type", "iv", "dv", "mod", "medi", "r", "p",
+            "id", "analysis", "iv", "dv", "mod", "medi",
+            "p_value_of_interest", "r", "corr_p",
             "interaction_p_value", "indirect_effect_p_value", "note"
           ), new = c(
-            "Analysis Type", "IV", "DV", "Moderator", "Mediator",
+            "ID", "Analysis", "IV", "DV", "Moderator", "Mediator",
+            "p of Interest",
             "r", "Correlation p", "Interaction p", "Indirect Effect p",
             "Note"), skip_absent = TRUE)
           # output
           output$table_1 <- DT::renderDataTable(
             e_result_merged,
+            filter = "top",
             options = list(pageLength = 1000))
         } else {
           showNotification(paste0(
@@ -1023,12 +1119,14 @@ exploratory <- function(
           data.table(
             statistic = names(desc_stats_dt),
             value = desc_stats_dt),
+          filter = "top",
           options = list(pageLength = 1000))}
       # frequency table
       if (active_tab == "freq_table") {
         output$table_1 <- DT::renderDataTable(
           tabulate_vector(
             dt01[[input$var]], sigfigs = input$sigfig),
+          filter = "top",
           options = list(pageLength = 1000))}
       # histogram
       if (active_tab == "histogram") {
@@ -1073,6 +1171,7 @@ exploratory <- function(
               var_for_stats = input$dv,
               grouping_vars = input$iv,
               sigfigs = input$sigfig),
+            filter = "top",
             options = list(pageLength = 1000))
           # pairwise comparisons
           output$table_3 <- DT::renderDataTable(
@@ -1083,6 +1182,7 @@ exploratory <- function(
               sigfigs = input$sigfig,
               mann_whitney = TRUE,
               t_test_stats = TRUE),
+            filter = "top",
             options = list(pageLength = 1000))
         }
       }
@@ -1130,12 +1230,16 @@ exploratory <- function(
           names(reg_table) <- c(
             "Variable", "B", "SE B", "Std. Beta", "t-stat", "p")
           reg_table
-        }, options = list(pageLength = 1000))
+        },
+        filter = "top",
+        options = list(pageLength = 1000))
       }
-      # view data
-      if (active_tab == "view_data") {
+      # view data, if active tab is "upload data" or "view data"
+      if (active_tab %in% c("upload_data", "view_data")) {
         output$table_1 <- DT::renderDataTable(
-          dt01, options = list(pageLength = 1000))}
+          dt01,
+          filter = "top",
+          options = list(pageLength = 1000))}
 
       # record action
       dt11 <- reactive_dt$run_analysis
@@ -1205,7 +1309,9 @@ exploratory <- function(
       output$saved_analysis_summary_dt <- DT::renderDataTable({
         data.table(input_type = new_input_type,
                    input_value = new_input_value)
-      }, options = list(pageLength = 100))
+      },
+      filter = "top",
+      options = list(pageLength = 100))
       # id, time, ip, etc
       id <- c(dt01$id,
               rep(max(c(dt01$id, 0)) + 1,
@@ -1231,9 +1337,13 @@ exploratory <- function(
     })
     # default tab
     isolate({updateTabItems(
+      session,
       inputId = "sidebar_menu",
       selected = "exploratory_analysis")})
   }
+  # By default, the file size limit is 5MB. It can be changed by
+  # setting this option. Here we'll raise limit to 50MB.
+  options(shiny.maxRequestSize = 50 * 1024 ^ 2)
   # create the app to run
   shiny_app <- list(ui = ui, server = server)
   runApp(shiny_app, launch.browser = TRUE)

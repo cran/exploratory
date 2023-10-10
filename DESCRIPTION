@@ -1,6 +1,6 @@
 Package: exploratory
 Title: A Tool for Large-Scale Exploratory Analyses
-Version: 0.3.13
+Version: 0.3.31
 Authors@R: 
     person(given = "Jin",
            family = "Kim",
@@ -17,14 +17,12 @@ Description: Conduct numerous exploratory analyses in an instant with a
     thus uncovered should be tested in follow-up studies. 
     This tool is designed only to facilitate exploratory 
     analyses and should NEVER be used for p-hacking. Many of 
-    the functions used in this package are direct copies of functions
-    in the R Package 'kim' and 'ezr'.
+    the functions used in this package are previous versions of functions
+    in the R Packages 'kim' and 'ezr'.
     Selected References:
     Chang et al. (2021) <https://CRAN.R-project.org/package=shiny>.
-    Chang et al. (2018) <https://CRAN.R-project.org/package=shinydashboard>.
-    Cohen (1988) <doi:10.4324/9780203771587>.
     Dowle et al. (2021) <https://CRAN.R-project.org/package=data.table>.
-    Ioannidis (2005) <doi:10.1371/journal.pmed.0020124>
+    Kim (2023) <https://jinkim.science/docs/kim.pdf>.
     Kim (2021) <doi:10.5281/zenodo.4619237>.
     Kim (2020) <https://CRAN.R-project.org/package=ezr>.
     Simmons et al. (2011) <doi:10.1177/0956797611417632>
@@ -37,10 +35,10 @@ Imports: data.table, DT, ggplot2, ggridges, lemon, lm.beta, mediation,
         remotes, shiny, shinydashboard, weights
 Suggests: moments
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2021-04-21 09:43:27 UTC; c
+Packaged: 2023-10-10 09:58:58 UTC; b
 Author: Jin Kim [aut, cre] (<https://orcid.org/0000-0002-5013-3958>)
 Maintainer: Jin Kim <jin.m.kim@yale.edu>
 Repository: CRAN
-Date/Publication: 2021-04-22 07:10:02 UTC
+Date/Publication: 2023-10-10 10:30:05 UTC
